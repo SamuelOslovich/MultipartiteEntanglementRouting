@@ -1,6 +1,6 @@
 # README.md
 
-Code and data for the results of the work on Distributing multipartite entanglement over noisy quantum networks in [https://arxiv.org/abs/2103.14759]{https://arxiv.org/abs/2103.14759}.
+Code and data for the results of the work on Distributing multipartite entanglement over noisy quantum networks in [https://arxiv.org/abs/2103.14759](https://arxiv.org/abs/2103.14759).
 
 ## c++ Folder
 
