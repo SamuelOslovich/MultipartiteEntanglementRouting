@@ -64,7 +64,7 @@ if sys.argv[1] == "test":
 			else:
 				seen.append(number)
 
-	stars = optimal_star(g1,terminal, qkd_flag=True)
+	stars = optimal_star(g1,terminal)
 	star2 = shortest_star(g2,terminal)
 	star3 = shortest_star_general(graph=g3,terminal=terminal,special_signature=Capacity(0,math.inf),neutral_signature=Capacity())
 	print(star3)
