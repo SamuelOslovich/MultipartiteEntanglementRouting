@@ -13,6 +13,10 @@ import time
 timestr = time.strftime("%Y%m%d-%H")
 print(timestr)
 
+## Sam Comment
+# Note that anytime fidelity is mentioned, it is gamma (from the paper)
+# Is the rate calculation incorrect? Shouldn't it be prob / (2*max time)
+
 # sys.argv[1] - type of simulation
 # 	. test - debugging on small graphs
 #	. convergence - reproduce convergence results on internet-like networks
@@ -30,28 +34,37 @@ if sys.argv[1] == "test":
 	print(g1.average_degree())
 
 	terminal = random.sample(range(N_nodes), N_terminals)
-
+	
+	## Sam comment
+	# used to test that the optimal paths algorithm is working
+	# optimal paths finds all of the paths in g1 between a source (g1[terminal[0]]) and all other nodes.
+	# paths that don't satisfy the weight_trunc are not included
 	optimal_paths(g1,g1[terminal[0]],weight_trunc=Weight(fid=0.72, prob=0, time=math.inf, sigma=0))
 	g1.print_paths(g1[terminal[0]])
 	g1.clear()
 	g1.print_paths(g1[terminal[0]])
-
-
+	
+	## Sam comment
+	# verifies that shortest_path is working
 	sol = nx.shortest_path(g2,source=terminal[0])
 	print(sol)
-
+	
+	## Sam comment
+	# verifies that shortest_paths_general is working
 	solpaths = shortest_paths_general(graph=g3,source=terminal[0],special_signature=Capacity(0,math.inf),neutral_signature=Capacity())
 	print(solpaths)
 
+	## Sam comment
+	# checks that no paths are repeated
 	for key,value in solpaths.items():
 		seen = []
 		for number in value[1]:
-		    if number in seen:
-		        print("Number repeated!")
-		    else:
-		        seen.append(number)
+			if number in seen:
+				print("Number repeated!")
+			else:
+				seen.append(number)
 
-	stars = optimal_star(g1,terminal)
+	stars = optimal_star(g1,terminal, qkd_flag=True)
 	star2 = shortest_star(g2,terminal)
 	star3 = shortest_star_general(graph=g3,terminal=terminal,special_signature=Capacity(0,math.inf),neutral_signature=Capacity())
 	print(star3)
@@ -61,7 +74,6 @@ if sys.argv[1] == "test":
 
 	if len(stars) > 0:
 		print(compare_stars(g1,stars,star2,star3))
-
 
 # ----------------------------- SIMULATING - CONVERGENCE OF METHODS ---------------------------
 

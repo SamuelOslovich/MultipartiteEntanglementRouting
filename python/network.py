@@ -13,6 +13,8 @@ def get_power_law(alpha,min_value,max_value):
 	x = powerlaw.rvs(alpha, size=1)
 	return max_value - x[0]*(max_value-min_value)
 
+## Sam Comment
+# Calculates the binary entropy of p
 def H2(p):
 	if p == 0: 
 		return 0
@@ -23,6 +25,12 @@ def H2(p):
 def k(p):
 	return 1-H2(3*p/4)
 
+## Sam Comment
+# filename: a file that contains the edges for the graph
+# fid_min: the minimum fidelity
+# prob_min: the min successful prob of entang
+# n_nodes: number of nodes
+# dist_t: distribution to use for the probability of successful entang
 def create_grid_from_file(filename,fid_min,prob_min,n_nodes,dist_t="uniform"):
 	t_mem_min = 100000
 	t_mem_max = 1000000
@@ -42,10 +50,26 @@ def create_grid_from_file(filename,fid_min,prob_min,n_nodes,dist_t="uniform"):
 	file = open("../networks/"+filename+".txt","r")
 	edges = file.readlines()
 
+	## Sam Comment
+	# G1 uses probability and fidelity for each link
+	# G2 is just like from the graph paper (no prob, no fidelity, everything is perfect)
+	# G3 just uses bounds-based: "where we perform the routing based on the maximum bound
+	#                             on what a protocol could achieve on distributing
+	#                             GHZ states. To each edge, one attributes a capacity that 
+	#                             translates the loss in the channel, and the probabilistic 
+	# 							  nature of entanglement generation. Then the capacity of 
+	#                             distribution is bounded by the minimum capacity along the
+	#                             links that make a given path."
+	# nx.Graph is a default graph from a library
+	# Graph is a custom implementation in Graphs.py that implements a graph with "quantum channels" as the links
+
 	G1 = Graph()
 	G2 = nx.Graph()
 	G3 = nx.Graph()
     
+	## Sam Comment
+	# Create all of the nodes
+	# Only G1 cares about the probability of successful entag swapping or the quantum memory
 	for i in range(0,n_nodes):
 		t_mem = dist_type(t_mem_min,t_mem_max)
 		prob_swap = dist_type(prob_min,prob_max)
@@ -55,6 +79,10 @@ def create_grid_from_file(filename,fid_min,prob_min,n_nodes,dist_t="uniform"):
 		G3.add_node(name)
 		#print(G1.nodes[name])
 
+	## Sam Comment
+	# Add all of the edges (read from the passed in file)
+	# Add (and generate) the details for the links for G1. (fidelity, probability of entang generation, comm time)
+	# For G3 add the max capacity (loss of the channel) as the weight
 	for edge in edges: 
 		e = edge.strip().split(' ')
 		s = int(e[0])
@@ -76,6 +104,58 @@ def create_grid_from_file(filename,fid_min,prob_min,n_nodes,dist_t="uniform"):
 
 	return G1, G2, G3
 
+## Sam Comment
+# New function I created to create a graph
+# nodeFilename: a space separated file that contains all of the nodes (in order), 
+#               the probability of successful entanglement swapping for the node,
+#               and the memory decoherence time for the node  
+# edgeFilename: a file that contains the edges, the probability of generating 
+# 				entanglement for each edge, the fidelity for each edge, and the 
+# 				communication time for each edge
+# n_nodes: the number of nodes
+def create_grid_from_file_complex(nodeFilename, edgeFilename, n_nodes):
+	nodeFile = open("../networks/" + nodeFilename + ".txt", "r")
+	nodes = nodeFile.readlines()
+
+	edgeFile = open("../networks/" + edgeFilename + ".txt", "r")
+	edges = edgeFile.readlines()
+
+	G1 = Graph()
+	G2 = nx.Graph()
+	G3 = nx.Graph()
+
+	for node in nodes:
+		nodeData = node.strip().split(' ')
+		name = int(nodeData[0])
+		prob_swap = float(nodeData[1])
+		t_mem = float(nodeData[2])
+
+		G1.add_node(Node(name=name,neighbours={},prob_swap=prob_swap,t_mem=t_mem))
+		G2.add_node(name)
+		G3.add_node(name)
+
+	for edge in edges:
+		edgeData = edge.strip().split(' ')
+		s = int(edgeData[0])
+		t = int(edgeData[1])
+		prob_gen = float(edgeData[2])
+		fid = float(edgeData[3])
+		time = float(edgeData[4])
+
+		linka = Link(source=G1.nodes[s], target=G1.nodes[t], fid=fid, prob_gen=prob_gen, time=time)
+		G1.add_link(linka)
+		G2.add_edge(s,t)
+		G3.add_edge(s,t,weight=Capacity(cap=prob_gen*k(1-fid),length=1))
+
+	return G1, G2, G3
+
+	
+
+		
+		
+
+## Sam Comment
+# Same as create_grid_from_file, except all of the probabilities are 1, and decoherence in quantum memory doesn't happen
 def create_grid_from_file_simple(filename,probs,n_nodes):
 	t_mem = math.inf
 	prob_swap = 1.

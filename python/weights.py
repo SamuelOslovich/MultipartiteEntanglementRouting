@@ -9,6 +9,11 @@ def prod(list_x):
 		out = out*x
 	return out
 
+# Compute binary entropy of p
+def h(p):
+	if p == 0 or p == 1:
+		return 0
+	return -1 * (p * math.log2(p) + (1-p) * math.log2(1-p))
 ## ------------------------------------- METRICS AND WEIGHTS ------------------------------------- ##
 
 
@@ -62,7 +67,6 @@ class Weight():
 	def __str__(self):
 		return "Dist: " + str(self.fid) + " || PROB: " + str(self.prob) + " || TIME: " + str(self.time) + " || SIGMA: " + str(self.sigma) 
 
-
 class WeightPath():
 	def __init__(self, weight=Weight()):
 		if weight.sigma == 0:
@@ -102,7 +106,11 @@ class WeightPath():
 		return "FID: " + str(self.fid) + " || PROB: " + str(self.prob) + " || TIME: " + str(self.time) 
 
 
-
+## Sam Comment
+# w.fid = gamma. That's why the product equation (self.fids) looks different than presented in the paper
+# WeightTree.fid is actual fidelity F = (3*gamma + 1)/4
+# Either eq 7 in the paper is wrong. OR the rate should be self.prob / (2*self.time)
+# Note. To make this work for QKD, just change the dominating status of the tree?
 class WeightTree():
 	def __init__(self, weights=[WeightPath()]):
 		self.weights = weights
@@ -147,7 +155,26 @@ class WeightTree():
 	def __str__(self):
 		return "FID: " + str(self.fid) + " || RATE: " + str(self.rate) 
 
+class QKDWeightTree(WeightTree):
+	def __init__(self, weights=[WeightPath()]):
+		super().__init__(weights)
+		self.gamma = (4*self.fid - 1)/3
+		self.keyrate = self.rate * (1 - h((1-self.gamma)/2) - h((1-self.gamma)/2))
 
+	def __add__(self,path):
+		return QKDWeightTree(weights=self.weights + [path.weight])
+
+	def __gt__(self,other):
+		return self.keyrate < other.keyrate
+
+	def __lt__(self,other):
+		return self.keyrate >= other.keyrate
+
+	def D(self,other):
+		return self.keyrate >= other.keyrate
+
+	def __str__(self):
+		return "KEYRATE: " + str(self.keyrate) + " || FID: " + str(self.fid) + " || RATE: " + str(self.rate)
 
 class Capacity():
 	def __init__(self, cap=math.inf, length=0):

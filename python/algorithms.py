@@ -94,6 +94,9 @@ def shortest_paths_general(graph,source,special_signature,neutral_signature):
 # OPTIMAL_PATHS - multi-objective shortest-path algorithm for the setup presented over the paper
 # each path has a fidelity (fid), a probability of success (prob), a time of comm. (time) and a rate of decoherence (sigma).
 # the way weights are added can be seen from the weights.py
+## Sam Comment
+# finds all of the paths between a source and each other node in the network
+# paths that don't satisfy the weight_trunc are not included
 def optimal_paths(graph,source,weight_trunc=Weight(fid=0.3333, prob=0, time=math.inf, sigma=0)):
 	heap = FibonacciHeap(source)
 	heap.insert_node(source)
@@ -228,6 +231,7 @@ def shortest_star_general(graph,terminal,special_signature,neutral_signature):
 def optimal_star(graph,terminal,fid_trunc=0.5):
 
 	weight_trunc = Weight(fid=(4*fid_trunc**(1/len(terminal))-1)/3, prob=0, time=math.inf, sigma=0)
+	
 	tree_trunc = WeightTree([WeightPath(weight_trunc)]*len(terminal))
 	print(weight_trunc)
 	print(tree_trunc)
