@@ -16,7 +16,8 @@ def h(p):
 	return -1 * (p * math.log2(p) + (1-p) * math.log2(1-p))
 ## ------------------------------------- METRICS AND WEIGHTS ------------------------------------- ##
 
-
+## Sam Comment
+# Note that in the weights, fid is gamma. Thus the actual fidelity F = (3*fid + 1)/4
 class Weight():   
 	def __init__(self, fid=1, prob=1, time=0, sigma=math.inf):
 		self.fid = fid
@@ -67,6 +68,8 @@ class Weight():
 	def __str__(self):
 		return "Dist: " + str(self.fid) + " || PROB: " + str(self.prob) + " || TIME: " + str(self.time) + " || SIGMA: " + str(self.sigma) 
 
+## Sam Comment
+# Here fid is still gamma
 class WeightPath():
 	def __init__(self, weight=Weight()):
 		if weight.sigma == 0:
@@ -110,7 +113,7 @@ class WeightPath():
 # w.fid = gamma. That's why the product equation (self.fids) looks different than presented in the paper
 # WeightTree.fid is actual fidelity F = (3*gamma + 1)/4
 # Either eq 7 in the paper is wrong. OR the rate should be self.prob / (2*self.time)
-# Note. To make this work for QKD, just change the dominating status of the tree?
+# Note. To make this work for QKD, just change the dominating status of the tree and path?
 class WeightTree():
 	def __init__(self, weights=[WeightPath()]):
 		self.weights = weights
@@ -155,8 +158,30 @@ class WeightTree():
 	def __str__(self):
 		return "FID: " + str(self.fid) + " || RATE: " + str(self.rate) 
 
+class QKDWeightPath(WeightPath):
+	def __init__(self, weight=Weight()):
+		super().__init__(weight)
+		if self.time == 0:
+			self.rate = math.inf
+		else:
+			self.rate = self.prob / self.time 
+		# Keyrate = (entanglement dist rate) * [1 - h((1-gamma)/2) - h((1-gamma)/2)]
+		self.keyrate = self.rate * (1 - h((1-self.fid)/2) - h((1-self.fid)/2))
+
+	def __gt__(self,other):
+		return self.keyrate < other.keyrate
+
+	def __lt__(self,other):
+		return self.keyrate >= other.keyrate
+
+	def D(self,other):
+		return self <= other
+
+	def __str__(self):
+		return "KEYRATE: " + str(self.keyrate) + " || FID: " + str(self.fid) + " || PROB: " + str(self.prob) + " || TIME: " + str(self.time) 
+
 class QKDWeightTree(WeightTree):
-	def __init__(self, weights=[WeightPath()]):
+	def __init__(self, weights=[QKDWeightPath()]):
 		super().__init__(weights)
 		self.gamma = (4*self.fid - 1)/3
 		self.keyrate = self.rate * (1 - h((1-self.gamma)/2) - h((1-self.gamma)/2))

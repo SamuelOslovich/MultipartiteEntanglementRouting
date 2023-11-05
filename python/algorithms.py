@@ -228,6 +228,9 @@ def shortest_star_general(graph,terminal,special_signature,neutral_signature):
 	return solution
 
 # OPTIMAL_STAR - multi-objective optimal-star algorithm 
+## Sam Comment
+# The objectives are defined in the Path and Tree weight classes 
+# (For QKD specific need to rewrite algorithm using QKDWeightPath and QKD WeightTree classes)
 def optimal_star(graph,terminal,fid_trunc=0.5):
 
 	weight_trunc = Weight(fid=(4*fid_trunc**(1/len(terminal))-1)/3, prob=0, time=math.inf, sigma=0)
@@ -255,6 +258,59 @@ def optimal_star(graph,terminal,fid_trunc=0.5):
 	for central_node in graph.nodes.values():
 		for tree_paths in itertools.product(*[central_node.paths[s] for s in terminal_nodes]):
 			tree = Star(terminal=terminal_nodes,paths=[p for p in tree_paths],weight=WeightTree([p.weight for p in tree_paths]))
+			
+			if len(solution) == 0:
+				solution += [tree]
+			else:
+				tree_sub = []
+				flag_add = False
+				for t in solution:
+					if t.D(tree):
+						flag_add = False
+						break
+
+					elif tree.D(t):
+						tree_sub += [t]
+						flag_add = True
+					
+					else:
+						flag_add = True
+
+				solution = [t for t in solution if t not in tree_sub]
+				if flag_add:
+					solution += [tree]
+
+	#print(shortest_paths)
+	return solution
+
+
+def QKDoptimal_star(graph,terminal,fid_trunc=0.5):
+
+	weight_trunc = Weight(fid=(4*fid_trunc**(1/len(terminal))-1)/3, prob=0, time=math.inf, sigma=0)
+	
+	tree_trunc = QKDWeightTree([QKDWeightPath(weight_trunc)]*len(terminal))
+	print(weight_trunc)
+	print(tree_trunc)
+
+	terminal_nodes = [graph[t] for t in terminal]
+	for node in terminal_nodes:
+		if node.paths.get(node): #has found the optimal paths for such node
+			continue
+		optimal_paths(graph, source=node,weight_trunc=weight_trunc)
+
+	for node in graph.nodes.values():
+		for source in terminal_nodes:
+			if node.reduced.get(source):
+				continue
+			node.reduction(source) # do a reduction in terms of the number of objectives - decrease search space for the stars
+
+	# check if they are connected pairwise - necessary but not sufficient condition for existence
+
+
+	solution = []
+	for central_node in graph.nodes.values():
+		for tree_paths in itertools.product(*[central_node.paths[s] for s in terminal_nodes]):
+			tree = Star(terminal=terminal_nodes,paths=[p for p in tree_paths],weight=QKDWeightTree([p.weight for p in tree_paths]))
 			
 			if len(solution) == 0:
 				solution += [tree]

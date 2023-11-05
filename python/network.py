@@ -149,9 +149,62 @@ def create_grid_from_file_complex(nodeFilename, edgeFilename, n_nodes):
 
 	return G1, G2, G3
 
-	
+## Sam Comment
+# New function I created to create a uniform graph where all params are the same for each node/link
+# filename: a file that contains the edges for the graph
+# fid: the fidelity of each link
+# prob: the probability of successful entanglement/(entang swapping)
+# t_com: the communication time between nodes
+# t_mem: the decoherence time of each nodes quantum memory
+# n_nodes: number of nodes
+def create_static_grid_from_file(filename, fid, prob, t_com, t_mem, n_nodes):
+	file = open("../networks/"+filename+".txt","r")
+	edges = file.readlines()
 
-		
+	## Sam Comment
+	# G1 uses probability and fidelity for each link
+	# G2 is just like from the graph paper (no prob, no fidelity, everything is perfect)
+	# G3 just uses bounds-based: "where we perform the routing based on the maximum bound
+	#                             on what a protocol could achieve on distributing
+	#                             GHZ states. To each edge, one attributes a capacity that 
+	#                             translates the loss in the channel, and the probabilistic 
+	# 							  nature of entanglement generation. Then the capacity of 
+	#                             distribution is bounded by the minimum capacity along the
+	#                             links that make a given path."
+	# nx.Graph is a default graph from a library
+	# Graph is a custom implementation in Graphs.py that implements a graph with "quantum channels" as the links
+
+	G1 = Graph()
+	G2 = nx.Graph()
+	G3 = nx.Graph()
+    
+	## Sam Comment
+	# Create all of the nodes
+	# Only G1 cares about the probability of successful entag swapping or the quantum memory
+	for i in range(0,n_nodes):
+		name = i
+		G1.add_node(Node(name=name,neighbours={},prob_swap=prob,t_mem=t_mem))
+		G2.add_node(name)
+		G3.add_node(name)
+		#print(G1.nodes[name])
+
+	## Sam Comment
+	# Add all of the edges (read from the passed in file)
+	# Add (and generate) the details for the links for G1. (fidelity, probability of entang generation, comm time)
+	# For G3 add the max capacity (loss of the channel) as the weight
+	for edge in edges: 
+		e = edge.strip().split(' ')
+		s = int(e[0])
+		t = int(e[1])
+
+		linka = Link(source=G1.nodes[s], target=G1.nodes[t], fid=fid, prob_gen=prob, time=t_com)
+		#print(linka)
+		G1.add_link(linka)
+		#G1.print()
+		G2.add_edge(s,t)
+		G3.add_edge(s,t,weight=Capacity(cap=prob*k(1-fid),length=1))
+
+	return G1, G2, G3
 		
 
 ## Sam Comment

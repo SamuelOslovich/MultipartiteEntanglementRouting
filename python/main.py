@@ -34,7 +34,7 @@ if sys.argv[1] == "test":
 	print(g1.average_degree())
 
 	terminal = random.sample(range(N_nodes), N_terminals)
-	
+
 	## Sam comment
 	# used to test that the optimal paths algorithm is working
 	# optimal paths finds all of the paths in g1 between a source (g1[terminal[0]]) and all other nodes.
@@ -43,12 +43,12 @@ if sys.argv[1] == "test":
 	g1.print_paths(g1[terminal[0]])
 	g1.clear()
 	g1.print_paths(g1[terminal[0]])
-	
+
 	## Sam comment
 	# verifies that shortest_path is working
 	sol = nx.shortest_path(g2,source=terminal[0])
 	print(sol)
-	
+
 	## Sam comment
 	# verifies that shortest_paths_general is working
 	solpaths = shortest_paths_general(graph=g3,source=terminal[0],special_signature=Capacity(0,math.inf),neutral_signature=Capacity())
@@ -75,6 +75,58 @@ if sys.argv[1] == "test":
 	if len(stars) > 0:
 		print(compare_stars(g1,stars,star2,star3))
 
+if sys.argv[1] == "QKDtest":
+	N_nodes = 25
+	N_terminals = 3
+
+	#Think of time in ms
+	g1,g2,g3 = create_static_grid_from_file("Dummy/simpleGrid",0.9604,1,1,math.inf,N_nodes)
+
+	g1.print()
+	print(g1.average_degree())
+
+	terminal = [10, 22, 14]#random.sample(range(N_nodes), N_terminals)
+
+	## Sam comment
+	# used to test that the optimal paths algorithm is working
+	# optimal paths finds all of the paths in g1 between a source (g1[terminal[0]]) and all other nodes.
+	# paths that don't satisfy the weight_trunc are not included
+	optimal_paths(g1,g1[12],weight_trunc=Weight(fid=.72, prob=0, time=math.inf, sigma=0))
+	g1.print_paths(g1[12])
+	g1.clear()
+	g1.print_paths(g1[12])
+
+	## Sam comment
+	# verifies that shortest_path is working
+	#sol = nx.shortest_path(g2,source=terminal[0])
+	#print(sol)
+
+	## Sam comment
+	# verifies that shortest_paths_general is working
+	#solpaths = shortest_paths_general(graph=g3,source=terminal[0],special_signature=Capacity(0,math.inf),neutral_signature=Capacity())
+	#print(solpaths)
+
+	## Sam comment
+	# checks that no paths are repeated
+	# for key,value in solpaths.items():
+	# 	seen = []
+	# 	for number in value[1]:
+	# 		if number in seen:
+	# 			print("Number repeated!")
+	# 		else:
+	# 			seen.append(number)
+
+	stars = QKDoptimal_star(g1,terminal, 0.835)
+	#star2 = shortest_star(g2,terminal)
+	#star3 = shortest_star_general(graph=g3,terminal=terminal,special_signature=Capacity(0,math.inf),neutral_signature=Capacity())
+	#print(star3)
+	print(len(stars))
+	for star in stars:
+		print(star)
+
+	#if len(stars) > 0:
+	#	print(compare_stars(g1,stars,star2,star3))
+
 # ----------------------------- SIMULATING - CONVERGENCE OF METHODS ---------------------------
 
 if sys.argv[1] == "convergence":
@@ -91,11 +143,11 @@ if sys.argv[1] == "convergence":
 	print(values_p)
 
 	convergence_points = []
-	filename = 'Convergence_points_' + timestr 
+	filename = 'Convergence_points_' + timestr
 	fileConv=open( filename + '.p', 'wb')
 
 	for i in range(len(values_p)-1,-1,-1):
-		for j in range(N_tries):	
+		for j in range(N_tries):
 			g1,g2,g3 = create_grid_from_file_simple("Internet/"+str(j),values_p[0:i+1],N_nodes)
 			print(values_p[0:i+1])
 			print(" ------ TRY " + str(j) + " - " + str(values_p[i]) + " -----------")
@@ -134,13 +186,13 @@ if sys.argv[1] == "ER":
 	N_terminals = 3
 
 	ER_points = []
-	filename = 'ER_points_' + timestr 
+	filename = 'ER_points_' + timestr
 	fileER=open( filename + '.p', 'wb')
 
 
-	for i in range(0,N_simul):	
+	for i in range(0,N_simul):
 		g1,g2,g3 = create_grid_from_file("ER/"+str(i),0.9,0.5,N_nodes,dist_t="uniform")
-		
+
 		for j in range(0,N_tries):
 			print(" ------ TRY " + str(i) + " - " + str(j) + " -----------")
 			terminal = random.sample(range(N_nodes), N_terminals)
@@ -166,7 +218,7 @@ if sys.argv[1] == "ER":
 	fileER.close()
 
 if sys.argv[1] == "internet":
-	
+
 	N_nodes = 1000
 	N_simul = 200
 	N_tries = 20
@@ -176,9 +228,9 @@ if sys.argv[1] == "internet":
 	filename = 'Internet_points_' + timestr
 	fileInternet=open(filename + '.p', 'wb')
 
-	for i in range(0,N_simul):	
+	for i in range(0,N_simul):
 		g1,g2,g3 = create_grid_from_file("Internet/"+str(i),0.9,0.5,N_nodes,dist_t="uniform")
-			
+
 		for j in range(0,N_tries):
 			print(" ------ TRY " + str(i) + " - " + str(j) + " -----------")
 
@@ -203,11 +255,4 @@ if sys.argv[1] == "internet":
 
 	np.save(filename + ".npy",Internet_points)
 	fileInternet.close()
-
-
-
-
-
-
-
 
